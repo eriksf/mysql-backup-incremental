@@ -7,14 +7,13 @@
 
 # Database names to specify a specific database only e.g. myawesomeapp
 # Use space to give more databases names e.g. nmsdb mydb admin sqldb testdb
- DBNAME="nmsdb"
+DBNAME="mlflowruns"
 
 # Username to access the Mysql server e.g. root
- DBUSERNAME="root"
+DBUSERNAME="admin"
 
 # Password to access the Mysql server e.g. password
- DBPASSWORD="root"
-
+DBPASSWORD=""
 
 # Host name (or IP address) of MySql server e.g localhost
 DBHOST="127.0.0.1"
@@ -63,29 +62,29 @@ RESTOREBACKUPDIR="/home/user/sqlbackups"
 #=====================================================================
 
 function disp(){
-echo "Command					$CMD_PARAM"
-echo "Host					$HOST_PARAM"
-echo "User Name				$USERN_PARAM"
-echo "Password				$PASSWD_PARAM"
-echo "Database				$DBNAME_PARAM"
-echo "Dump Directory				$DUMPDIR_PARAM"
-echo "BinaryLogs Directory			$BINLOGDIR_PARAM"
-echo "To Dump Day				$DUMPDAY_PARAM"
-echo "To Dump Hour				$DUMHOUR_PARAM"
-echo "Restore Directory			$RESTOREDIR_PARAM"
-echo "BinaryLog file Name			$BINFILE_PARAM"
+echo "Command                   $CMD_PARAM"
+echo "Host                  $HOST_PARAM"
+echo "User Name             $USERN_PARAM"
+echo "Password              $PASSWD_PARAM"
+echo "Database              $DBNAME_PARAM"
+echo "Dump Directory                $DUMPDIR_PARAM"
+echo "BinaryLogs Directory          $BINLOGDIR_PARAM"
+echo "To Dump Day               $DUMPDAY_PARAM"
+echo "To Dump Hour              $DUMHOUR_PARAM"
+echo "Restore Directory         $RESTOREDIR_PARAM"
+echo "BinaryLog file Name           $BINFILE_PARAM"
 }
 
 function usage ()
 {
   echo 'Usage : Script -c <command> -h <host> -u <user> -p <password> -db <databaseName>' 
-  echo '	       -b <binaryLogFileName> -dp <dumpPath> -bl <binaryLogFileLocation>'
-  echo '	       -r <restoreLocation> -day <day> -hour <hour> -help'
+  echo '           -b <binaryLogFileName> -dp <dumpPath> -bl <binaryLogFileLocation>'
+  echo '           -r <restoreLocation> -day <day> -hour <hour> -help'
   echo '-----------------------------------------------------------------------------------'
   echo '-help, --help          Display this help and exit.'
   echo '-c, --command          External command to run e.g. dump or restore.'
-  echo '-h, --host     	       Connect to host.'
-  echo '-u, --user  	       User for login.'
+  echo '-h, --host             Connect to host.'
+  echo '-u, --user             User for login.'
   echo '-p, --password         Password to use when connecting to server. If password is not given it''s asked from the tty.' 
   echo '-db, --database        Database to use.'
   echo '-b, --binFileName      Binary Log File name.'
@@ -112,47 +111,47 @@ fi
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    "-c" | "--command") 	shift 
-							CMD_PARAM=${1:-defaults}
-      				    	;;
-   "-h" | "--host") 		shift
-      						HOST_PARAM=${1:-$DBHOST}
-	  			    		;;
-	"-u" | "--user") 		shift
-      						USERN_PARAM=${1:-$DBUSERNAME}
-	  			    		;;
-	"-p" | "--password") 	shift
-      						PASSWD_PARAM=${1:-$DBPASSWORD}
-	  			    		;;
-	"-db" | "--database") 	shift
-      						DBNAME_PARAM=${1:-$DBNAME}
-	  			    		;;
-	"-b" | "--binFileName") shift
-      						BINFILE_PARAM=${1:-$BINFILENAME}
-	  			    		;;
-	"-dp" | "--dumpPath") 	shift
-      						DUMPDIR_PARAM=${1:-$DUMPBACKUPDIR}
-	  			    		;;
-	"-bl" | "--binPath") 	shift
-      						BINLOGDIR_PARAM=${1:-$BLOGSBACKUPDIR}
-	  			    		;;
-	"-r" | "--restorePath") shift
-      						RESTOREDIR_PARAM=${1:-$RESTOREBACKUPDIR}
-	  			    		;;
-	"-day" | "--day") 		shift
-      						DUMPDAY_PARAM=${1:-$DUMPDAY}
-	  			    		;;
-	"-hour" | "--hour") 	shift
-      						DUMHOUR_PARAM=${1:-$DUMPHOUR}
-	  			    		;;
-	"-help" | "--help") 	usage      						
-	  			    		;;
-								
+    "-c" | "--command")     shift 
+                            CMD_PARAM=${1:-defaults}
+                            ;;
+    "-h" | "--host")        shift
+                            HOST_PARAM=${1:-$DBHOST}
+                            ;;
+    "-u" | "--user")        shift
+                            USERN_PARAM=${1:-$DBUSERNAME}
+                            ;;
+    "-p" | "--password")    shift
+                            PASSWD_PARAM=${1:-$DBPASSWORD}
+                            ;;
+    "-db" | "--database")   shift
+                            DBNAME_PARAM=${1:-$DBNAME}
+                            ;;
+    "-b" | "--binFileName") shift
+                            BINFILE_PARAM=${1:-$BINFILENAME}
+                            ;;
+    "-dp" | "--dumpPath")   shift
+                            DUMPDIR_PARAM=${1:-$DUMPBACKUPDIR}
+                            ;;
+    "-bl" | "--binPath")    shift
+                            BINLOGDIR_PARAM=${1:-$BLOGSBACKUPDIR}
+                            ;;
+    "-r" | "--restorePath") shift
+                            RESTOREDIR_PARAM=${1:-$RESTOREBACKUPDIR}
+                            ;;
+    "-day" | "--day")       shift
+                            DUMPDAY_PARAM=${1:-$DUMPDAY}
+                            ;;
+    "-hour" | "--hour")     shift
+                            DUMHOUR_PARAM=${1:-$DUMPHOUR}
+                            ;;
+    "-help" | "--help")     usage                           
+                            ;;
+                                
     *)
       printf "***************************\n"
       printf "* Error: Invalid argument.*\n"
       printf "***************************\n"
-	  usage
+      usage
       
   esac
   shift
@@ -164,47 +163,60 @@ disp
  
 echo "Creating MySQL new binary log at `date`"
 if [ "$CMD_PARAM" == "restore" ]; then
-	echo "Restoring started `date`"
-	echo "Taking Dump Files and BinaryLog Files from $RESTOREDIR_PARAM"
-		for restoreDumpFile in `ls $RESTOREDIR_PARAM/*.sql | sort -V -r | head -n1`
-			do
-				mysql -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM < $restoreDumpFile
-				echo "restored Dumps Successfully !!!"
-			done
-		for restoreBinLogFile in `ls $RESTOREDIR_PARAM/$BINFILE_PARAM*.* |sort -V | grep -v '\.bz2'`
-			do 
-				mysqlbinlog $restoreBinLogFile |mysql -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM
-				echo "restored Binary Log File: $restoreBinLogFile"
-			done
-echo "Restore Completed !!!"
+    echo "Restoring started `date`"
+    echo "Taking Dump Files and BinaryLog Files from $RESTOREDIR_PARAM"
+    for restoreDumpFile in `ls $RESTOREDIR_PARAM/*.sql | sort -V -r | head -n1`
+    do
+        mysql -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM < $restoreDumpFile
+        echo "restored Dumps Successfully !!!"
+    done
+    for restoreBinLogFile in `ls $RESTOREDIR_PARAM/$BINFILE_PARAM*.* |sort -V | grep -v '\.bz2'`
+    do 
+        mysqlbinlog $restoreBinLogFile |mysql -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM
+        echo "restored Binary Log File: $restoreBinLogFile"
+    done
+    echo "Restore Completed !!!"
 else
 
 if [ `date +%A` == $DUMPDAY_PARAM -a `date +%H` == $DUMHOUR_PARAM -o "$CMD_PARAM" == "dump" ]; then
-        echo "Weekly Backup started `date`"
-        echo "Full mysql database dump started"
-        echo 'All existing full backups and binary log files will be removed'
-        PREFIX='mysql-dump.'
-        DT=`date "+%m%d%y"`
-        DBFN=$PREFIX$DT'.sql'
+    echo "Weekly Backup started `date`"
+    echo "Full mysql database dump started"
+    echo 'All existing full backups and binary log files will be removed'
+    PREFIX='mysql-dump.'
+    DT=`date "+%m%d%y"`
+    DBFN=$PREFIX$DT'.sql'
 
-        rm -f $DUMPDIR_PARAM/*.bz2
+    dump_archives=($DUMPDIR_PARAM/*.bz2)
+    binlog_archives=($BINLOGDIR_PARAM/*.bz2)
 
-        mysqldump -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM --flush-logs --delete-master-logs --master-data=2 --add-drop-table --lock-all-tables --databases $DBNAME_PARAM  > $DUMPDIR_PARAM/$DBFN
-        bzip2 $DUMPDIR_PARAM/$DBFN
-        echo "MySQL Dump Completed !!!"
-		echo "Please find the .bz2 Dump File in $DUMPDIR_PARAM/$DBFN"
+    mysqldump -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM --flush-logs --delete-master-logs --master-data=2 --add-drop-table --lock-all-tables --databases $DBNAME_PARAM > $DUMPDIR_PARAM/$DBFN
+    bzip2 $DUMPDIR_PARAM/$DBFN
+    echo "MySQL Dump Completed !!!"
+    echo "Please find the .bz2 Dump File in $DUMPDIR_PARAM/$DBFN"
+
+    # remove old backup archives
+    for backupfile in "${dump_archives[@]}"
+    do
+        rm -f $backupfile
+    done
+    
+    # remove old bin log files
+    for binlogfile in "${binlog_archives[@]}"
+    do
+        rm -f $binlogfile
+    done
 else
-       echo "starting new bin log"
-	   oldestlog=`ls -d $BINLOGDIR_PARAM/$BINFILE_PARAM.?????? | sed 's/^.*\.//' | sort -g | tail -n 1`
-	   mysqladmin -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM flush-logs
+    echo "starting new bin log"
+    oldestlog=`ls -d $BINLOGDIR_PARAM/$BINFILE_PARAM.?????? | sed 's/^.*\.//' | sort -g | tail -n 1`
+    mysqladmin -u$USERN_PARAM -h$HOST_PARAM -p$PASSWD_PARAM flush-logs
 fi
 newestlog=`ls -d $BINLOGDIR_PARAM/$BINFILE_PARAM.?????? | sed 's/^.*\.//' | sort -g | tail -n 1`
 for file in `ls $BINLOGDIR_PARAM/$BINFILE_PARAM.??????`
 do
-        if [ "$BINLOGDIR_PARAM/$BINFILE_PARAM.$newestlog" != "$file" ]; then
-                bzip2 "$file"
-				echo "Please find the .bz2 Binary Log File in $BINLOGDIR_PARAM/$BINFILE_PARAM.$oldestlog"
-        fi
+    if [ "$BINLOGDIR_PARAM/$BINFILE_PARAM.$newestlog" != "$file" ]; then
+        bzip2 "$file"
+        echo "Please find the .bz2 Binary Log File in $BINLOGDIR_PARAM/$BINFILE_PARAM.$oldestlog"
+    fi
 done
 
 echo "Bin Logs backed up !!!"
